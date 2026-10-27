@@ -1,0 +1,58 @@
+name: Test and deploy public demo
+
+on:
+  push:
+    branches: [main]
+    paths: ['demo-site/**', '.github/workflows/demo-pages.yml']
+  pull_request:
+    branches: [main]
+    paths: ['demo-site/**', '.github/workflows/demo-pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: demo-site/package-lock.json
+      - name: Install demo dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Test demo state and privacy boundary
+        run: npm test
+      - name: Typecheck and build demo
+        run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: demo-site/dist
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy public demo
+        id: deployment
+        uses: actions/deploy-pages@v4
