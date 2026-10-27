@@ -1,3 +1,5 @@
+**[Open the interactive sample demo ↗](https://mduransu-maker.github.io/fundament/)** — synthetic data, no sign-in, no persistence. The personal hosted instance remains private.
+
 <p align="center">
   <img src="docs/fundament-hero.png" alt="Fundament dashboard with life areas, quarterly focus and three daily actions" width="100%" />
 </p>
